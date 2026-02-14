@@ -14,9 +14,34 @@ services:
         value: production
       - key: WEBHOOK_URL
         sync: false
-      - key: N8N_ENCRYPTION_KEY
-        generateValue: true
+      - fromGroup: n8n-secrets
+      - key: N8N_RUNNERS_ENABLED
+        value: "true"
+      - key: N8N_RUNNERS_MODE
+        value: external
+      - key: N8N_RUNNERS_BROKER_LISTEN_ADDRESS
+        value: 0.0.0.0
+      - key: N8N_NATIVE_PYTHON_RUNNER
+        value: "true"
     disk:
       name: n8n-data
       mountPath: /home/node/.n8n
       sizeGB: 10
+
+  - type: worker
+    name: n8n-runners
+    env: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: N8N_RUNNERS_TASK_BROKER_URI
+        value: http://n8n:5679
+      - fromGroup: n8n-secrets
+
+envVarGroups:
+  - name: n8n-secrets
+    envVars:
+      - key: N8N_ENCRYPTION_KEY
+        generateValue: true
+      - key: N8N_RUNNERS_AUTH_TOKEN
+        generateValue: true
